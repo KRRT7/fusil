@@ -6,7 +6,7 @@ from fusil.six.moves import range as xrange
 
 
 def createCharset(start, stop):
-    return set(u''.join( unichr(code) for code in xrange(start, stop+1) ))
+    return set(map(chr, range(start, stop+1)))
 
 # ASCII codes 0..255
 ASCII8 = createCharset(0, 255)
