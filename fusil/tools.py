@@ -24,7 +24,7 @@ def listDiff(old, new):
     >>> listDiff([4, 0, 3], [10, 0, 50])
     [6, 0, 47]
     """
-    return [ item[1]-item[0] for item in izip(old, new) ]
+    return [new_item - old_item for old_item, new_item in zip(old, new)]
 
 def timedeltaSeconds(delta):
     """
