@@ -1,18 +1,32 @@
 from array import array
-from random import choice, randint
+from random import choice, randint, randrange
 
 from fusil.mangle_op import MAX_INCR, SPECIAL_VALUES
 from fusil.tools import minmax
 
 
 def createBitOffset(agent, datalen):
-    min_offset = 0
-    if agent.min_offset is not None:
-        min_offset = max(agent.min_offset*8, min_offset)
-    max_offset = datalen*8 - 1
-    if agent.max_offset is not None:
-        max_offset = min(agent.max_offset*8 + 7, max_offset)
-    return randint(min_offset, max_offset)
+    # Cache commonly reused values locally for efficiency
+    min_shift = agent.min_offset
+    max_shift = agent.max_offset
+    datalen8 = datalen * 8
+
+    # Compute min_offset in bits
+    if min_shift is not None:
+        min_offset = max(min_shift * 8, 0)
+    else:
+        min_offset = 0
+
+    # Compute max_offset in bits
+    max_offset = datalen8 - 1
+    if max_shift is not None:
+        temp_max_offset = max_shift * 8 + 7
+        if temp_max_offset < max_offset:
+            max_offset = temp_max_offset
+
+    # Use randrange (faster than randint since it avoids a function call and argument checking)
+    # randint(a, b) == randrange(a, b+1), both ends inclusive
+    return randrange(min_offset, max_offset + 1)
 
 def createByteOffset(agent, datalen):
     min_offset = 0
