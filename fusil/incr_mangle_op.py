@@ -1,5 +1,5 @@
 from array import array
-from random import choice, randint
+from random import choice, getrandbits, randint
 
 from fusil.mangle_op import MAX_INCR, SPECIAL_VALUES
 from fusil.tools import minmax
@@ -15,13 +15,32 @@ def createBitOffset(agent, datalen):
     return randint(min_offset, max_offset)
 
 def createByteOffset(agent, datalen):
-    min_offset = 0
-    if agent.min_offset is not None:
-        min_offset = max(agent.min_offset, min_offset)
-    max_offset = datalen - 1
-    if agent.max_offset is not None:
-        max_offset = min(agent.max_offset, max_offset)
-    return randint(min_offset, max_offset)
+    min_offset = agent.min_offset
+    if min_offset is None or min_offset < 0:
+        min_offset = 0
+    max_offset = agent.max_offset
+    max_data_offset = datalen - 1
+    if max_offset is None or max_offset > max_data_offset:
+        max_offset = max_data_offset
+    # Do not use Python's randint; use fast version
+    return _fast_randint(min_offset, max_offset)
+
+
+def _fast_randint(a, b):
+    """Faster alternative to randint using getrandbits for uniform integer in [a, b]."""
+    width = b - a + 1
+    if width <= 0:
+        raise ValueError("empty range for randint()")
+    # use getrandbits if width is a power of two
+    if (width & (width - 1)) == 0:  # power of 2
+        return a + (getrandbits(width.bit_length() - 1) & (width - 1))
+    else:
+        # Rejection sampling for uniform range
+        bits = width.bit_length()
+        while True:
+            r = getrandbits(bits)
+            if r < width:
+                return a + r
 
 class Operation:
     def __init__(self, offset, size):
